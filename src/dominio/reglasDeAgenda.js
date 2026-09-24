@@ -35,20 +35,8 @@ function validarFechaFutura(fecha_hora, ahora = new Date()) {
   }
 }
 
-// Averiguar si el horario está ocupado es responsabilidad de la capa de
-// persistencia; esta regla solo decide sobre el hecho ya consultado.
-function validarAgendaLibre(horarioOcupado) {
-  if (horarioOcupado) {
-    throw new ErrorDeNegocio(
-      'AGENDA_OCUPADA',
-      'Regla del servidor: ese profesional ya tiene una cita a esa hora'
-    );
-  }
-}
-
 module.exports = {
   ErrorDeNegocio,
   validarDatosCompletos,
   validarFechaFutura,
-  validarAgendaLibre,
 };

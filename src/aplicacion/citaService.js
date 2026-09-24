@@ -12,16 +12,14 @@ async function consultarProfesionales() {
 }
 
 async function reservarCita(datos) {
+  // 1. Validaciones en memoria (0 ms)
   reglas.validarDatosCompletos(datos);
   reglas.validarFechaFutura(datos.fecha_hora);
 
-  const ocupado = await citaRepository.existeEnHorario(
-    datos.profesional_id,
-    datos.fecha_hora
-  );
-  reglas.validarAgendaLibre(ocupado);
-
+  // 2. Intento directo de guardado (1 solo viaje por la red)
+  // Si choca, el repository lanzará automáticamente el error AGENDA_OCUPADA
   const id = await citaRepository.guardar(datos);
+  
   return { mensaje: 'Cita creada', id };
 }
 
