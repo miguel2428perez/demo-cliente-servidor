@@ -1,26 +1,24 @@
-// Casos de uso de citas: coordinan las reglas del dominio y los repositorios.
+// MODIFICAR: src/aplicacion/citaService.js
 const reglas = require('../dominio/reglasDeAgenda');
-const citaRepository = require('../persistencia/citaRepository');
-const profesionalRepository = require('../persistencia/profesionalRepository');
+const { verificarRepositorios } = require('./contratos/repositorios');
 
-async function consultarCitas() {
-  return citaRepository.listarTodas();
+function crearCitaService({ citaRepository, profesionalRepository,
+                            reloj = () => new Date() }) {
+  verificarRepositorios({ citaRepository, profesionalRepository });
+  return {
+    consultarCitas: () => citaRepository.listarTodas(),
+    consultarProfesionales: () => profesionalRepository.listarTodos(),
+    reservarCita: async (datos) => {
+      reglas.validarDatosCompletos(datos);
+      reglas.validarFechaFutura(datos.fecha_hora, reloj());
+      const ocupado = await citaRepository.existeEnHorario(
+        datos.profesional_id, datos.fecha_hora
+      );
+      reglas.validarAgendaLibre(ocupado);
+      const id = await citaRepository.guardar(datos);
+      return { mensaje: 'Cita creada', id };
+    }
+  };
 }
 
-async function consultarProfesionales() {
-  return profesionalRepository.listarTodos();
-}
-
-async function reservarCita(datos) {
-  // 1. Validaciones en memoria (0 ms)
-  reglas.validarDatosCompletos(datos);
-  reglas.validarFechaFutura(datos.fecha_hora);
-
-  // 2. Intento directo de guardado (1 solo viaje por la red)
-  // Si choca, el repository lanzará automáticamente el error AGENDA_OCUPADA
-  const id = await citaRepository.guardar(datos);
-  
-  return { mensaje: 'Cita creada', id };
-}
-
-module.exports = { consultarCitas, consultarProfesionales, reservarCita };
+module.exports = { crearCitaService };
