@@ -1,4 +1,4 @@
-// MODIFICAR: src/aplicacion/citaService.js
+// src/aplicacion/citaService.js
 const reglas = require('../dominio/reglasDeAgenda');
 const { verificarRepositorios } = require('./contratos/repositorios');
 
@@ -11,10 +11,8 @@ function crearCitaService({ citaRepository, profesionalRepository,
     reservarCita: async (datos) => {
       reglas.validarDatosCompletos(datos);
       reglas.validarFechaFutura(datos.fecha_hora, reloj());
-      const ocupado = await citaRepository.existeEnHorario(
-        datos.profesional_id, datos.fecha_hora
-      );
-      reglas.validarAgendaLibre(ocupado);
+      
+      // guardar() inserta directamente y lanza AGENDA_OCUPADA si hay colisión (código 23505)
       const id = await citaRepository.guardar(datos);
       return { mensaje: 'Cita creada', id };
     }
