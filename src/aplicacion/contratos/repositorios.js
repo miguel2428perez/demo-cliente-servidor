@@ -1,5 +1,4 @@
-// NUEVO: src/aplicacion/contratos/repositorios.js
-// Contrato de colaboración de la aplicación (JavaScript).
+// src/aplicacion/contratos/repositorios.js
 function exigirMetodos(objeto, metodos, nombre) {
   for (const metodo of metodos) {
     if (typeof objeto?.[metodo] !== 'function') {
@@ -10,7 +9,7 @@ function exigirMetodos(objeto, metodos, nombre) {
 
 function verificarRepositorios({ citaRepository, profesionalRepository }) {
   exigirMetodos(citaRepository,
-    ['listarTodas', 'existeEnHorario', 'guardar'], 'citaRepository');
+    ['listarTodas', 'guardar'], 'citaRepository'); // <-- Se quitó 'existeEnHorario'
   exigirMetodos(profesionalRepository,
     ['listarTodos'], 'profesionalRepository');
 }
