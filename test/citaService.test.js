@@ -2,14 +2,23 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { crearCitaService } = require('../src/aplicacion/citaService');
+const { ErrorDeNegocio } = require('../src/dominio/reglasDeAgenda');
 
 function crearServicioParaPrueba(ocupado = false) {
   let guardadas = 0;
   const servicio = crearCitaService({
     citaRepository: {
       listarTodas: async () => [],
-      existeEnHorario: async () => ocupado,
-      guardar: async () => { guardadas++; return 7; }
+      guardar: async () => {
+        if (ocupado) {
+          throw new ErrorDeNegocio(
+            'AGENDA_OCUPADA',
+            'Regla del servidor: ese profesional ya tiene una cita a esa hora'
+          );
+        }
+        guardadas++;
+        return 7;
+      }
     },
     profesionalRepository: { listarTodos: async () => [] },
     reloj: () => new Date('2026-10-01T00:00:00Z')
@@ -43,4 +52,16 @@ test('fecha pasada se rechaza sin consultar PostgreSQL', async () => {
     fecha_hora: '2026-09-01T10:00:00Z'
   }), { codigo: 'FECHA_PASADA' });
   assert.equal(x.guardadas(), 0);
+});
+
+test('rechaza un repositorio al que le falte un método del contrato', () => {
+  assert.throws(() => {
+    crearCitaService({
+      citaRepository: { listarTodas: async () => [] },
+      profesionalRepository: { listarTodos: async () => [] }
+    });
+  }, {
+    name: 'TypeError',
+    message: 'citaRepository debe implementar guardar()'
+  });
 });
